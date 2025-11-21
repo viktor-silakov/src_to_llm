@@ -2,6 +2,19 @@
 
 Minimal CLI that walks project sources, filters them by config, and writes JSON, YAML, or TOON output plus a visualization for quick bundle review.
 
+## Visualization Overview
+```mermaid
+graph TD
+  Config[Config Selection] --> Walker[Source Walker]
+  Walker --> Filter[Filter Rules]
+  Filter --> Bundles[Bundle Builder]
+  Bundles --> Output[JSON / YAML / TOON]
+  Bundles --> Viz[Visualization]
+```
+
+### Visualization Bundle Summary
+![HTML report](./media/html-report.png "Visualization bundle summary")
+
 ## Requirements
 - Node.js 18+
 - Yarn 1.x

@@ -51,7 +51,8 @@ const sanitizeFileName = (fileName: string): string => fileName.replace(/[^a-z0-
 
 const generateVisualizationHTML = (
   filesContent: FilesContent,
-  stats: ProcessingStats
+  stats: ProcessingStats,
+  format: OutputFormat
 ): string => {
   const treeData = { name: 'root', children: [] as any[] };
 
@@ -189,7 +190,7 @@ const generateVisualizationHTML = (
         <div class="stats">
             <div class="stat-item"><strong>Files:</strong> ${formatNumber(stats.totalFiles)}</div>
             <div class="stat-item"><strong>Source Size:</strong> ${formatBytes(stats.totalSourceSize)}</div>
-            <div class="stat-item"><strong>JSON Size:</strong> ${formatBytes(stats.outputFileSize)}</div>
+            <div class="stat-item"><strong>${format.toUpperCase()} Size:</strong> ${formatBytes(stats.outputFileSize)}</div>
             <div class="stat-item"><strong>Gemini Tokens:</strong> ${formatNumber(stats.estimatedTokens)}</div>
         </div>
     </div>
@@ -552,7 +553,7 @@ const convertSources = (config: SourceConfig): void => {
     projectOutputDir,
     `${path.parse(outputName).name}-visualization.html`
   );
-  const visualizationHTML = generateVisualizationHTML(filesContent, stats);
+  const visualizationHTML = generateVisualizationHTML(filesContent, stats, format);
   fs.writeFileSync(htmlOutputPath, visualizationHTML, 'utf-8');
 
   console.log('\n' + '='.repeat(60));
