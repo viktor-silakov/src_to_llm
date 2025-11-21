@@ -1,6 +1,6 @@
 # src-to-llm
 
-Minimal CLI that walks project sources, filters them by config, and writes JSON plus a visualization for quick bundle review.
+Minimal CLI that walks project sources, filters them by config, and writes JSON, YAML, or TOON output plus a visualization for quick bundle review.
 
 ## Requirements
 - Node.js 18+
@@ -12,12 +12,24 @@ Minimal CLI that walks project sources, filters them by config, and writes JSON 
 3. Verify types: `yarn typecheck`
 4. Run the minimal validation tests: `yarn test`
 
+## Output Formats
+- `outputFormat` is optional in configs and defaults to `json`
+- Supported values: `json`, `yaml`, `toon`
+
+## Selecting File Types and Ignore Rules
+- Declare `fileTypes` with every extension you want to include (case-sensitive)
+- Declare `ignorePaths` with directory names, glob-style suffixes (e.g. `*.log`), or individual files
+- Keep patterns repository-relative; the CLI normalizes them before matching
+
 ## Creating Custom Configs
 Place additional configs under `config/` with the suffix `.config.ts`. Only `config/default.config.ts` is tracked in git; other files stay local.
 
 Example (save as `config/my-app.config.ts`):
 ```ts
-import { SourceConfig, defaultFileTypes, defaultIgnorePaths } from '../src/types/source-config';
+import { SourceConfig } from '../src/types/source-config';
+
+const fileTypes = ['.ts', '.tsx', '.js', '.json'];
+const ignorePaths = ['node_modules', 'dist', 'storybook-static'];
 
 export const myAppConfig: SourceConfig = {
   id: 'my-app',
@@ -26,8 +38,9 @@ export const myAppConfig: SourceConfig = {
   packageName: 'my-app',
   paths: ['../my-app/src', '../my-app/packages/utils'],
   outputDir: './out',
-  fileTypes: [...defaultFileTypes, '.json'],
-  ignorePaths: [...defaultIgnorePaths, 'dist', 'storybook-static']
+  fileTypes,
+  ignorePaths,
+  outputFormat: 'toon'
 };
 ```
 

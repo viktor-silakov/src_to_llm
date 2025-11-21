@@ -27,6 +27,11 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
+"@toon-format/toon@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@toon-format/toon/-/toon-1.0.0.tgz#00c8f525a4854d044c89bb21633ead90d996519d"
+  integrity sha512-2gIk8LaqrzpurNDaDWZ72kucAGcBbxJxUnp+4ZP+Pny/QVNdMVf97yzSDTI3ed2q8ypjj8T271P6iE3bRmQBNw==
+
 "@tsconfig/node10@^1.0.7":
   version "1.0.12"
   resolved "https://registry.yarnpkg.com/@tsconfig/node10/-/node10-1.0.12.tgz#be57ceac1e4692b41be9de6be8c32a106636dba4"
@@ -144,6 +149,11 @@ v8-compile-cache-lib@^3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/v8-compile-cache-lib/-/v8-compile-cache-lib-3.0.1.tgz#6336e8d71965cb3d35a1bbb7868445a7c05264bf"
   integrity sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==
+
+yaml@^2.8.1:
+  version "2.8.1"
+  resolved "https://registry.yarnpkg.com/yaml/-/yaml-2.8.1.tgz#1870aa02b631f7e8328b93f8bc574fac5d6c4d79"
+  integrity sha512-lcYcMxX2PO9XMGvAJkJ3OsNMw+/7FKes7/hgerGUYWIoWu5j/+YQqcZr5JnPZWzOsEBgMbSbiSTn/dv/69Mkpw==
 
 yn@3.1.1:
   version "3.1.1"

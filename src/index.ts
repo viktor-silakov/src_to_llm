@@ -1,7 +1,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import Enquirer from 'enquirer';
-import { SourceConfig, isSourceConfig } from './types/source-config';
+import { stringify as stringifyYaml } from 'yaml';
+import { encode as encodeToon } from '@toon-format/toon';
+import { OutputFormat, SourceConfig, isSourceConfig } from './types/source-config';
 
 type FilesContent = Record<string, Record<string, string>>;
 
@@ -399,6 +401,14 @@ const resolvePaths = (config: SourceConfig): string[] =>
 const resolveOutputDir = (config: SourceConfig): string =>
   path.isAbsolute(config.outputDir) ? config.outputDir : path.join(process.cwd(), config.outputDir);
 
+const resolveFormat = (config: SourceConfig): OutputFormat => config.outputFormat ?? 'json';
+
+const formatExtensions: Record<OutputFormat, string> = {
+  json: '.json',
+  yaml: '.yaml',
+  toon: '.toon'
+};
+
 const collectConfigFiles = (dir: string): string[] => {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   const files: string[] = [];
@@ -470,7 +480,7 @@ const loadConfigs = async (): Promise<SourceConfig[]> => {
   return loaded;
 };
 
-const convertToJson = (config: SourceConfig): void => {
+const convertSources = (config: SourceConfig): void => {
   const filesContent: FilesContent = {};
   const resolvedPaths = resolvePaths(config);
   const outputDir = resolveOutputDir(config);
@@ -497,17 +507,31 @@ const convertToJson = (config: SourceConfig): void => {
     fs.mkdirSync(projectOutputDir, { recursive: true });
   }
 
+  const format = resolveFormat(config);
+  const outputExtension = formatExtensions[format];
   const outputName =
     resolvedPaths.length === 1
-      ? `${sanitizeFileName(path.basename(resolvedPaths[0]))}.json`
-      : `${sanitizeFileName(config.id)}-codebase.json`;
+      ? `${sanitizeFileName(path.basename(resolvedPaths[0]))}${outputExtension}`
+      : `${sanitizeFileName(config.id)}-codebase${outputExtension}`;
   const outputPath = path.join(projectOutputDir, outputName);
 
-  const jsonOutput = JSON.stringify(filesContent, null, 2);
-  fs.writeFileSync(outputPath, jsonOutput, 'utf-8');
+  let outputContent: string;
+
+  switch (format) {
+    case 'yaml':
+      outputContent = stringifyYaml(filesContent);
+      break;
+    case 'toon':
+      outputContent = encodeToon(filesContent);
+      break;
+    default:
+      outputContent = JSON.stringify(filesContent, null, 2);
+  }
+
+  fs.writeFileSync(outputPath, outputContent, 'utf-8');
 
   const outputFileSize = fs.statSync(outputPath).size;
-  const estimatedTokens = estimateGeminiTokens(jsonOutput);
+  const estimatedTokens = estimateGeminiTokens(outputContent);
 
   const totalFiles = Object.values(filesContent).reduce((acc, pkg) => acc + Object.keys(pkg).length, 0);
   const totalSourceSize = Object.values(filesContent).reduce(
@@ -524,7 +548,10 @@ const convertToJson = (config: SourceConfig): void => {
     estimatedTokens
   };
 
-  const htmlOutputPath = outputPath.replace('.json', '-visualization.html');
+  const htmlOutputPath = path.join(
+    projectOutputDir,
+    `${path.parse(outputName).name}-visualization.html`
+  );
   const visualizationHTML = generateVisualizationHTML(filesContent, stats);
   fs.writeFileSync(htmlOutputPath, visualizationHTML, 'utf-8');
 
@@ -534,9 +561,10 @@ const convertToJson = (config: SourceConfig): void => {
   console.log(`✅ Output file: ${outputPath}`);
   console.log(`🎨 Visualization: ${htmlOutputPath}`);
   console.log('-'.repeat(60));
+  console.log(`🧾 Output format: ${format.toUpperCase()}`);
   console.log(`📁 Total files processed: ${formatNumber(totalFiles)}`);
   console.log(`📦 Total source size: ${formatBytes(totalSourceSize)}`);
-  console.log(`💾 Output JSON size: ${formatBytes(outputFileSize)}`);
+  console.log(`💾 Output file size: ${formatBytes(outputFileSize)}`);
   console.log(`🤖 Estimated Gemini 2.5 tokens: ${formatNumber(estimatedTokens)}`);
   console.log('='.repeat(60));
   console.log('\n💡 To view the visualization, run:');
@@ -567,7 +595,7 @@ const pickConfig = async (configs: SourceConfig[]): Promise<SourceConfig> => {
 const main = async (): Promise<void> => {
   const configs = await loadConfigs();
   const config = await pickConfig(configs);
-  convertToJson(config);
+  convertSources(config);
 };
 
 main().catch((error) => {
