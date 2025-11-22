@@ -27,6 +27,7 @@ graph TD
 
 ## Output Formats
 - `outputFormat` is optional in configs and defaults to `json`
+- `outputDir` is optional and defaults to `./out`
 - Supported values: `json`, `yaml`, `toon`
 
 ## Selecting File Types and Ignore Rules
@@ -45,16 +46,13 @@ const fileTypes = ['.ts', '.tsx', '.js', '.json'];
 const ignorePaths = ['node_modules', 'dist', 'storybook-static'];
 
 export const myAppConfig: SourceConfig = {
-  id: 'my-app',
-  name: 'My App',
   description: 'Collect the core sources for My App',
   packageName: 'my-app',
   paths: ['../my-app/src', '../my-app/packages/utils'],
-  outputDir: './out',
   fileTypes,
   ignorePaths,
   outputFormat: 'toon'
 };
 ```
 
-Run `yarn start`, pick `my-app`, and find the generated artifacts inside `out/<packageName>/`.
+Run `yarn start`, pick `my-app` (configs are listed by `packageName`), and find the generated artifacts inside `out/<packageName>/`.

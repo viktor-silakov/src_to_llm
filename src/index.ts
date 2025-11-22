@@ -5,6 +5,8 @@ import { stringify as stringifyYaml } from 'yaml';
 import { encode as encodeToon } from '@toon-format/toon';
 import { OutputFormat, SourceConfig, isSourceConfig } from './types/source-config';
 
+const DEFAULT_OUTPUT_DIR = './out';
+
 type FilesContent = Record<string, Record<string, string>>;
 
 interface ProcessingStats {
@@ -399,8 +401,10 @@ const addFile = (
 const resolvePaths = (config: SourceConfig): string[] =>
   config.paths.map((current) => (path.isAbsolute(current) ? current : path.join(process.cwd(), current)));
 
-const resolveOutputDir = (config: SourceConfig): string =>
-  path.isAbsolute(config.outputDir) ? config.outputDir : path.join(process.cwd(), config.outputDir);
+const resolveOutputDir = (config: SourceConfig): string => {
+  const configuredDir = config.outputDir ?? DEFAULT_OUTPUT_DIR;
+  return path.isAbsolute(configuredDir) ? configuredDir : path.join(process.cwd(), configuredDir);
+};
 
 const resolveFormat = (config: SourceConfig): OutputFormat => config.outputFormat ?? 'json';
 
@@ -457,17 +461,23 @@ const loadConfigs = async (): Promise<SourceConfig[]> => {
     const values = Object.values(moduleExports);
 
     for (const value of values) {
-      if (isSourceConfig(value) && !seen.has(value.id)) {
-        loaded.push(value);
-        seen.add(value.id);
+      if (isSourceConfig(value)) {
+        const key = value.packageName;
+        if (!seen.has(key)) {
+          loaded.push(value);
+          seen.add(key);
+        }
         continue;
       }
 
       if (Array.isArray(value)) {
         for (const item of value) {
-          if (isSourceConfig(item) && !seen.has(item.id)) {
-            loaded.push(item);
-            seen.add(item.id);
+          if (isSourceConfig(item)) {
+            const key = item.packageName;
+            if (!seen.has(key)) {
+              loaded.push(item);
+              seen.add(key);
+            }
           }
         }
       }
@@ -513,7 +523,7 @@ const convertSources = (config: SourceConfig): void => {
   const outputName =
     resolvedPaths.length === 1
       ? `${sanitizeFileName(path.basename(resolvedPaths[0]))}${outputExtension}`
-      : `${sanitizeFileName(config.id)}-codebase${outputExtension}`;
+      : `${sanitizeFileName(config.packageName)}-codebase${outputExtension}`;
   const outputPath = path.join(projectOutputDir, outputName);
 
   let outputContent: string;
@@ -574,17 +584,17 @@ const convertSources = (config: SourceConfig): void => {
 };
 
 const pickConfig = async (configs: SourceConfig[]): Promise<SourceConfig> => {
-  const { config: selectedId } = await Enquirer.prompt<{ config: string }>({
+  const { config: selectedPackage } = await Enquirer.prompt<{ config: string }>({
     type: 'select',
     name: 'config',
     message: 'Выберите конфигурацию (стрелками)',
     choices: configs.map((config) => ({
-      name: config.id,
-      message: `${config.name} — ${config.description}`
+      name: config.packageName,
+      message: `${config.packageName} — ${config.description}`
     }))
   });
 
-  const selectedConfig = configs.find((config) => config.id === selectedId);
+  const selectedConfig = configs.find((config) => config.packageName === selectedPackage);
 
   if (!selectedConfig) {
     throw new Error('Selected configuration is not available');

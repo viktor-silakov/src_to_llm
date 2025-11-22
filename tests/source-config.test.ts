@@ -8,12 +8,10 @@ const acceptedFormats: OutputFormat[] = ['json', 'yaml', 'toon'];
 
 acceptedFormats.forEach((format) => {
   const validConfig: SourceConfig = {
-    id: `demo-${format}`,
-    name: 'Demo Config',
     description: 'Demo configuration for testing',
-    packageName: 'demo-package',
+    packageName: `demo-${format}`,
     paths: ['.'],
-    outputDir: './out',
+    outputDir: './custom-out',
     fileTypes: defaultFileTypes,
     ignorePaths: defaultIgnorePaths,
     outputFormat: format
@@ -23,28 +21,22 @@ acceptedFormats.forEach((format) => {
 });
 
 const fallbackConfig: SourceConfig = {
-  id: 'demo-default',
-  name: 'Demo Config',
   description: 'Demo configuration for testing',
   packageName: 'demo-package',
   paths: ['.'],
-  outputDir: './out',
   fileTypes: defaultFileTypes,
   ignorePaths: defaultIgnorePaths
 };
 
-assert.strictEqual(isSourceConfig(fallbackConfig), true, 'Config without format should pass validation');
+assert.strictEqual(isSourceConfig(fallbackConfig), true, 'Config without format or outputDir should pass validation');
 
 const missingFieldConfig = {
-  id: 'demo',
   description: 'Missing fields'
 };
 
 assert.strictEqual(isSourceConfig(missingFieldConfig), false, 'Config with missing fields should fail validation');
 
 const wrongTypesConfig = {
-  id: 'demo',
-  name: 'Wrong Types',
   description: 'Config with wrong field types',
   packageName: 123,
   paths: 'not-an-array',
@@ -56,12 +48,9 @@ const wrongTypesConfig = {
 assert.strictEqual(isSourceConfig(wrongTypesConfig), false, 'Config with wrong types should fail validation');
 
 const invalidFormatConfig = {
-  id: 'demo',
-  name: 'Invalid format config',
   description: 'Uses unsupported format value',
   packageName: 'demo-package',
   paths: ['.'],
-  outputDir: './out',
   fileTypes: defaultFileTypes,
   ignorePaths: defaultIgnorePaths,
   outputFormat: 'xml'
